@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "537570010989",
+    "firebase_url": "https://checkedin-22717.firebaseio.com",
+    "project_id": "checkedin-22717",
+    "storage_bucket": "checkedin-22717.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:537570010989:android:08120f12943b43a0db5c64",
+        "android_client_info": {
+          "package_name": "development.software.mobile.checkedin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "537570010989-l3gtko7tac9s53ilt25o53rrpdk56uk2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAr36RVIx1Qsr_ggYbk_wJsMSqHr2IwrOQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "537570010989-l3gtko7tac9s53ilt25o53rrpdk56uk2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
