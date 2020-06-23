@@ -1,8 +1,11 @@
 package development.software.mobile.checkedin;
 
 import android.app.ProgressDialog;
-import android.support.design.widget.TextInputEditText;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,6 +13,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import butterknife.ButterKnife;
 import butterknife.BindView;
@@ -28,12 +38,16 @@ public class Registration extends AppCompatActivity {
     Button _signupButton;
     @BindView(R.id.link_login)
     TextView _loginLink;
+    private FirebaseAuth mAuth;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
         ButterKnife.bind(this);
+        FirebaseApp.initializeApp(this);
+
+        mAuth = FirebaseAuth.getInstance();
 
         _signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,7 +76,7 @@ public class Registration extends AppCompatActivity {
         _signupButton.setEnabled(false);
 
         final ProgressDialog progressDialog = new ProgressDialog(Registration.this,
-                R.style.AppTheme_Dark_Dialog);
+                R.style.AppTheme_Dark);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Creating Account...");
         progressDialog.show();
@@ -73,16 +87,38 @@ public class Registration extends AppCompatActivity {
 
         // TODO: Implement your own signup logic here.
 
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        onSignupSuccess();
-                        // onSignupFailed();
-                        progressDialog.dismiss();
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "createUserWithEmail:success");
+                            FirebaseUser user = mAuth.getCurrentUser();
+//                            updateUI(user);
+
+                            Toast.makeText(getBaseContext(), "Signup successful", Toast.LENGTH_LONG).show();
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                            Toast.makeText(getBaseContext(), "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+//                            updateUI(null);
+                        }
+
+                        // ...
                     }
-                }, 3000);
+                });
+//        new android.os.Handler().postDelayed(
+//                new Runnable() {
+//                    public void run() {
+//                        // On complete call either onSignupSuccess or onSignupFailed
+//                        // depending on success
+//                        onSignupSuccess();
+//                        // onSignupFailed();
+//                        progressDialog.dismiss();
+//                    }
+//                }, 3000);
     }
 
 
@@ -106,21 +142,21 @@ public class Registration extends AppCompatActivity {
         String password = _passwordText.getText().toString();
 
         if (name.isEmpty() || name.length() < 3) {
-            _nameText.setError("at least 3 characters");
+            _nameText.setError("At least 3 characters");
             valid = false;
         } else {
             _nameText.setError(null);
         }
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
+            _emailText.setError("Enter a valid email address");
             valid = false;
         } else {
             _emailText.setError(null);
         }
 
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
+        if (password.isEmpty() || password.length() < 4 ) {
+            _passwordText.setError("Must be above 4 alphanumeric characters");
             valid = false;
         } else {
             _passwordText.setError(null);

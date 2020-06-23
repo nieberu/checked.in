@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "537570010989",
-    "firebase_url": "https://checkedin-22717.firebaseio.com",
-    "project_id": "checkedin-22717",
-    "storage_bucket": "checkedin-22717.appspot.com"
+    "project_number": "680189568427",
+    "firebase_url": "https://checkedin-c7362.firebaseio.com",
+    "project_id": "checkedin-c7362",
+    "storage_bucket": "checkedin-c7362.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:537570010989:android:08120f12943b43a0db5c64",
+        "mobilesdk_app_id": "1:680189568427:android:e69c3bf7f246159a04deee",
         "android_client_info": {
           "package_name": "development.software.mobile.checkedin"
         }
       },
       "oauth_client": [
         {
-          "client_id": "537570010989-a1lmo9vprik1gg5798vqridtmms5ce18.apps.googleusercontent.com",
+          "client_id": "680189568427-ep04kpt5qjbbabkohvvi8658pgihfqph.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "development.software.mobile.checkedin",
@@ -23,20 +23,20 @@
           }
         },
         {
-          "client_id": "537570010989-l3gtko7tac9s53ilt25o53rrpdk56uk2.apps.googleusercontent.com",
+          "client_id": "680189568427-p83f5b0hv7kaeuj8nd2rhsmlpufjl6ft.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAr36RVIx1Qsr_ggYbk_wJsMSqHr2IwrOQ"
+          "current_key": "AIzaSyBRbiUtzywmDt2ZQdzqRV5hmG1zzSN7Yqs"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "537570010989-l3gtko7tac9s53ilt25o53rrpdk56uk2.apps.googleusercontent.com",
+              "client_id": "680189568427-p83f5b0hv7kaeuj8nd2rhsmlpufjl6ft.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
