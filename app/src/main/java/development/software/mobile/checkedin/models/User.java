@@ -1,6 +1,8 @@
 package development.software.mobile.checkedin.models;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     private String uid;
     private String firstName;
     private String lastName;
@@ -16,6 +18,7 @@ public class User {
         this.userName = userName;
         this.phoneNumber = phoneNumber;
     }
+    public User() {}
 
     public String getUid(){
         return uid;

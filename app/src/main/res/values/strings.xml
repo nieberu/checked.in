@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Checked.In</string>
+    <string name="no_account">No account yet? Create one</string>
+    <string name="login">Login</string>
+    <string name="logo">Logo</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="username">Usernamee</string>
+    <string name="firstName">First Name</string>
+    <string name="lastName">Last Name</string>
+    <string name="phoneNumber">Phone Number</string>
+    <string name="createAccount">Create Account</string>
+    <string name="alreadyMember">Already a member? Login</string>
+
 </resources>
