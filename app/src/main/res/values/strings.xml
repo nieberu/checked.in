@@ -11,6 +11,13 @@
     <string name="phoneNumber">Phone Number</string>
     <string name="createAccount">Create Account</string>
     <string name="alreadyMember">Already a member? Login</string>
+    <string name="title_activity_create_group">CreateGroup</string>
+    <string name="my_group">MyGroups</string>
+    <string name="create_group">Create</string>
+    <string name="join_group">Join</string>
+    <string name="group_name">Group Name</string>
+    <string name="add_members">Add Members to the Group</string>
+    <string name="create_button">Create</string>
 
 
 </resources>

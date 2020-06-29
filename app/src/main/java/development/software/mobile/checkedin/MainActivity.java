@@ -18,14 +18,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.List;
+
 import development.software.mobile.checkedin.models.User;
 
 public class MainActivity extends AppCompatActivity {
 
-    // private TextView text;
+    private TextView text;
     private FirebaseAuth mAuth;
-    Button login;
-    Button register;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         User user = (User)getIntent().getSerializableExtra("User");
-        // text = findViewById(R.id.mainText);
+        //text = findViewById(R.id.mainText);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference();
@@ -41,45 +41,40 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if(currentUser != null){
-            myRef.child("users").child(currentUser.getUid()).addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    // This method is called once with the initial value and again
-                    // whenever data at this location is updated.
-                    userObject[0] = dataSnapshot.getValue(User.class);
-                    Log.d("JAY", "Value is: " + userObject[0]);
-                    //text.setText(userObject[0].toString());
+        myRef.child("users").child(currentUser.getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                userObject[0] = dataSnapshot.getValue(User.class);
+                Log.d("JAY", "Value is: " + userObject[0]);
+                Intent intent = new Intent(getApplicationContext(), CreateGroup.class);
+                intent.putExtra("user", userObject[0]);
+                if(userObject[0].getGroupNames().size() > 0) {
+                    intent.putExtra("tab", 0);
+                    intent.putExtra("groupNames", groupName(userObject[0].getGroupNames()));
+                } else {
+                    intent.putExtra("tab", 1);
                 }
+                startActivity(intent);
+            }
 
-                @Override
-                public void onCancelled(DatabaseError error) {
-                    // Failed to read value
-                    Log.w("JAY", "Failed to read value.", error.toException());
-                }
-            });
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w("JAY", "Failed to read value.", error.toException());
+            }
+        });
+
+
+    }
+
+    private String groupName(List<String> groupNames)  {
+        String s = "";
+        for(String groupName : groupNames){
+            s = s + groupName + "\n";
         }
-
-        login = (Button) findViewById(R.id.loginButton);
-        register = (Button) findViewById(R.id.registerButton);
-
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), Login.class);
-                startActivity(intent);
-            }
-        });
-
-        register.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), Registration.class);
-                startActivity(intent);
-            }
-
-        });
-
+        return s.substring(0, s.length() - 1);
     }
 
 
