@@ -21,6 +21,6 @@
     <string name="group_key">Key</string>
     <string name="group_owner_email">Group Owner Email</string>
     <string name="uploadPicture">Please upload a profile picture</string>
-    <string name="remove_member">Remove Member</string>
+    <string name="remove_member">Remove</string>
 
 </resources>
