@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:fitsSystemWindows="true"
@@ -83,6 +85,29 @@
             android:inputType="textCapWords|phone" />
 
         <!-- Signup Button -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/picture_button"
+                android:layout_width="72dp"
+                android:layout_height="wrap_content"
+                android:foreground="@android:drawable/ic_menu_camera"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/picture_name"
+                android:layout_width="212dp"
+                android:layout_height="wrap_content"
+                android:text="@string/uploadPicture"
+                android:textColor="#EFAFAF"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+
         <Button
             android:id="@+id/btn_signup"
             android:layout_width="fill_parent"

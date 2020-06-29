@@ -5,7 +5,7 @@
     <string name="logo">Logo</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="username">Usernamee</string>
+    <string name="username">Username</string>
     <string name="firstName">First Name</string>
     <string name="lastName">Last Name</string>
     <string name="phoneNumber">Phone Number</string>
@@ -20,6 +20,5 @@
     <string name="create_button">Create</string>
     <string name="group_key">Key</string>
     <string name="group_owner_email">Group Owner Email</string>
-
-
+    <string name="uploadPicture">Please upload a profile picture</string>
 </resources>
