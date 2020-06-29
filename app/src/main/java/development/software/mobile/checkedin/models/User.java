@@ -1,6 +1,8 @@
 package development.software.mobile.checkedin.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class User implements Serializable {
     private String uid;
@@ -8,9 +10,10 @@ public class User implements Serializable {
     private String lastName;
     private String email;
     private String userName;
-    private int phoneNumber;
+    private long phoneNumber;
+    private List<String> groupNames;
 
-    public User(String uid, String firstName, String lastName, String email, String userName, int phoneNumber){
+    public User(String uid, String firstName, String lastName, String email, String userName, long phoneNumber){
         this.uid = uid;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -40,7 +43,7 @@ public class User implements Serializable {
         return userName;
     }
 
-    public int getPhoneNumber() {
+    public long getPhoneNumber() {
         return phoneNumber;
     }
 
@@ -60,8 +63,19 @@ public class User implements Serializable {
         this.userName = userName;
     }
 
-    public void setPhoneNumber(int phoneNumber) {
+    public void setPhoneNumber(long phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public List<String> getGroupNames() {
+        if(groupNames == null){
+            groupNames = new ArrayList<>();
+        }
+        return groupNames;
+    }
+
+    public void setGroupNames(List<String> groupNames) {
+        this.groupNames = groupNames;
     }
 
     @Override
