@@ -5,11 +5,12 @@
     <string name="logo">Logo</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="username">Usernamee</string>
+    <string name="username">Username</string>
     <string name="firstName">First Name</string>
     <string name="lastName">Last Name</string>
     <string name="phoneNumber">Phone Number</string>
     <string name="createAccount">Create Account</string>
     <string name="alreadyMember">Already a member? Login</string>
+    <string name="uploadPicture">Please upload a profile picture</string>
 
 </resources>
