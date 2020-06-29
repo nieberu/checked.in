@@ -94,20 +94,21 @@ public class CreateGroupTab extends Fragment {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onClick(View v) {
-                validateMembers();
-                String members = currentUser.getEmail() + "\n" + friends.getText().toString();
-                Group group = new Group(UUID.randomUUID().toString(),groupNameText.getText().toString(),
-                        Arrays.asList(members.split("\n")),currentUser.getEmail(),
-                        hashids.encode((random.nextInt(10) + 1),(random.nextInt(10) + 1), (random.nextInt(10) + 1)));
-                updateFireBase(group);
-                TabLayout tabhost = (TabLayout) getActivity().findViewById(R.id.tabs);
-                tabhost.getTabAt(0).select();
+                if(validateMembers()){
+                    String members = currentUser.getEmail() + "\n" + friends.getText().toString();
+                    Group group = new Group(UUID.randomUUID().toString(),groupNameText.getText().toString(),
+                            Arrays.asList(members.split("\n")),currentUser.getEmail(),
+                            hashids.encode((random.nextInt(10) + 1),(random.nextInt(10) + 1), (random.nextInt(10) + 1)));
+                    updateFireBase(group);
+                    TabLayout tabhost = (TabLayout) getActivity().findViewById(R.id.tabs);
+                    tabhost.getTabAt(0).select();
+                }
             }
         });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void validateMembers(){
+    private boolean validateMembers(){
         String[] members = friends.getText().toString().split("\n");
         String missingMembers = "";
         for (String member : members){
@@ -118,7 +119,9 @@ public class CreateGroupTab extends Fragment {
         if(missingMembers.length() > 0){
             Toast.makeText(getContext(), "Members not found " + missingMembers.substring(0, missingMembers.length() - 1),
                     Toast.LENGTH_SHORT).show();
+            return false;
         }
+        return true;
     }
 
     private void updateFireBase(Group group){
@@ -133,7 +136,6 @@ public class CreateGroupTab extends Fragment {
                     childUpdates.put("/users/"+user.getUid(),user);
                     myRef.updateChildren(childUpdates);
                 }
-
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
 

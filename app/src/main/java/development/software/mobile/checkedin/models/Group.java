@@ -19,6 +19,10 @@ public class Group implements Serializable {
         this.key = key;
     }
 
+    public Group(){
+
+    }
+
     public String getUid() {
         return uid;
     }

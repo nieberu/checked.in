@@ -18,6 +18,8 @@
     <string name="group_name">Group Name</string>
     <string name="add_members">Add Members to the Group</string>
     <string name="create_button">Create</string>
+    <string name="group_key">Key</string>
+    <string name="group_owner_email">Group Owner Email</string>
 
 
 </resources>
