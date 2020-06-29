@@ -32,6 +32,7 @@ import java.util.Random;
 import java.util.UUID;
 
 import development.software.mobile.checkedin.models.Group;
+import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.User;
 import development.software.mobile.checkedin.util.Hashids;
 
@@ -100,8 +101,8 @@ public class JoinGroupTab extends Fragment {
     }
 
     private void updateFireBase(Group group){
-        group.getMembers().add(currentUser.getEmail());
-        currentUser.getGroupNames().add(group.getName());
+        group.getMembers().add(new Member(currentUser.getUid(), currentUser.getEmail()));
+        currentUser.getGroupMap().put(group.getName(), group.getUid());
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/groups/"+group.getUid(),group);
         childUpdates.put("/users/"+currentUser.getUid(),currentUser);

@@ -36,6 +36,7 @@ import java.util.Random;
 import java.util.UUID;
 
 import development.software.mobile.checkedin.models.Group;
+import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.User;
 import development.software.mobile.checkedin.util.Hashids;
 
@@ -96,8 +97,12 @@ public class CreateGroupTab extends Fragment {
             public void onClick(View v) {
                 if(validateMembers()){
                     String members = currentUser.getEmail() + "\n" + friends.getText().toString();
+                    List<Member> memberList = new ArrayList<>();
+                    for (String email : Arrays.asList(members.split("\n"))){
+                        memberList.add(new Member(emailMap.get(email), email));
+                    }
                     Group group = new Group(UUID.randomUUID().toString(),groupNameText.getText().toString(),
-                            Arrays.asList(members.split("\n")),currentUser.getEmail(),
+                            memberList,currentUser.getEmail(),
                             hashids.encode((random.nextInt(10) + 1),(random.nextInt(10) + 1), (random.nextInt(10) + 1)));
                     updateFireBase(group);
                     TabLayout tabhost = (TabLayout) getActivity().findViewById(R.id.tabs);
@@ -126,12 +131,12 @@ public class CreateGroupTab extends Fragment {
 
     private void updateFireBase(Group group){
         myRef.child("groups").child(group.getUid()).setValue(group);
-        for(String email : group.getMembers()){
-            myRef.child("users").child(emailMap.get(email)).addListenerForSingleValueEvent(new ValueEventListener() {
+        for(Member member : group.getMembers()){
+            myRef.child("users").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     User user = dataSnapshot.getValue(User.class);
-                    user.getGroupNames().add(group.getName());
+                    user.getGroupMap().put(group.getName(), group.getUid());
                     Map<String, Object> childUpdates = new HashMap<>();
                     childUpdates.put("/users/"+user.getUid(),user);
                     myRef.updateChildren(childUpdates);

@@ -48,15 +48,17 @@ public class MainActivity extends AppCompatActivity {
                 // whenever data at this location is updated.
                 userObject[0] = dataSnapshot.getValue(User.class);
                 Log.d("JAY", "Value is: " + userObject[0]);
-                Intent intent = new Intent(getApplicationContext(), CreateGroup.class);
-                intent.putExtra("user", userObject[0]);
-                if(userObject[0].getGroupNames().size() > 0) {
-                    intent.putExtra("tab", 0);
-                    intent.putExtra("groupNames", groupName(userObject[0].getGroupNames()));
-                } else {
-                    intent.putExtra("tab", 1);
+                if(userObject[0] != null){
+                    Intent intent = new Intent(getApplicationContext(), CreateGroup.class);
+                    intent.putExtra("user", userObject[0]);
+                    if(userObject[0].getGroupMap().size() > 0) {
+                        intent.putExtra("tab", 0);
+                    } else {
+                        intent.putExtra("tab", 1);
+                    }
+                    startActivity(intent);
                 }
-                startActivity(intent);
+
             }
 
             @Override
@@ -69,13 +71,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private String groupName(List<String> groupNames)  {
-        String s = "";
-        for(String groupName : groupNames){
-            s = s + groupName + "\n";
-        }
-        return s.substring(0, s.length() - 1);
-    }
 
 
 }

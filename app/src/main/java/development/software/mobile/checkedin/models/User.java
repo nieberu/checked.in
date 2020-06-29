@@ -2,7 +2,9 @@ package development.software.mobile.checkedin.models;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class User implements Serializable {
     private String uid;
@@ -11,7 +13,7 @@ public class User implements Serializable {
     private String email;
     private String userName;
     private long phoneNumber;
-    private List<String> groupNames;
+    private Map<String, String> groupMap;
 
     public User(String uid, String firstName, String lastName, String email, String userName, long phoneNumber){
         this.uid = uid;
@@ -67,15 +69,15 @@ public class User implements Serializable {
         this.phoneNumber = phoneNumber;
     }
 
-    public List<String> getGroupNames() {
-        if(groupNames == null){
-            groupNames = new ArrayList<>();
+    public Map<String, String> getGroupMap() {
+        if(groupMap == null){
+            groupMap = new HashMap<>();
         }
-        return groupNames;
+        return groupMap;
     }
 
-    public void setGroupNames(List<String> groupNames) {
-        this.groupNames = groupNames;
+    public void setGroupMap(Map<String, String> groupMap) {
+        this.groupMap = groupMap;
     }
 
     @Override
