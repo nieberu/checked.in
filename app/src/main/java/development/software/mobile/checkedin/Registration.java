@@ -186,6 +186,8 @@ public class Registration extends AppCompatActivity {
 
         // TODO: Implement signup logic here.
         registerUser(email, password, firstName, lastName, username, phoneNumber);
+
+        progressDialog.dismiss();
     }
 
 
