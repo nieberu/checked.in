@@ -7,11 +7,11 @@ public class Group implements Serializable {
 
     private String uid;
     private String name;
-    private List<String> members;
+    private List<Member> members;
     private String owner;
     private String key;
 
-    public Group(String uid, String name, List<String> members, String owner, String key) {
+    public Group(String uid, String name, List<Member> members, String owner, String key) {
         this.uid = uid;
         this.name = name;
         this.members = members;
@@ -39,11 +39,11 @@ public class Group implements Serializable {
         this.name = name;
     }
 
-    public List<String> getMembers() {
+    public List<Member> getMembers() {
         return members;
     }
 
-    public void setMembers(List<String> members) {
+    public void setMembers(List<Member> members) {
         this.members = members;
     }
 

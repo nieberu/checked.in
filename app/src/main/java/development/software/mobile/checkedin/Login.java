@@ -92,9 +92,35 @@ public class Login extends AppCompatActivity {
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-            startActivity(intent);
-            finish();
+//            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+//            startActivity(intent);
+//            finish();
+            myRef.child("users").child(currentUser.getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    // This method is called once with the initial value and again
+                    // whenever data at this location is updated.
+                    userObject[0] = dataSnapshot.getValue(User.class);
+                    Log.d("JAY", "Value is: " + userObject[0]);
+                    if(userObject[0] != null){
+                        Intent intent = new Intent(getApplicationContext(), CreateGroup.class);
+                        intent.putExtra("user", userObject[0]);
+                        if(userObject[0].getGroupMap().size() > 0) {
+                            intent.putExtra("tab", 0);
+                        } else {
+                            intent.putExtra("tab", 1);
+                        }
+                        startActivity(intent);
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError error) {
+                    // Failed to read value
+                    Log.w("JAY", "Failed to read value.", error.toException());
+                }
+            });
         }
 
     }
@@ -109,7 +135,7 @@ public class Login extends AppCompatActivity {
 
         _loginButton.setEnabled(false);
 
-        final ProgressDialog progressDialog = new ProgressDialog(getApplicationContext(),
+        final ProgressDialog progressDialog = new ProgressDialog(Login.this,
                 R.style.AppTheme_Dark_Dialog);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Authenticating...");
