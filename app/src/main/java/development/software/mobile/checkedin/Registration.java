@@ -180,7 +180,7 @@ public class Registration extends AppCompatActivity {
         String firstName = _firstNameText.getText().toString();
         String lastName = _lastNameText.getText().toString();
         String username = _usernameText.getText().toString();
-        int phoneNumber = Integer.parseInt(_phoneNumberText.getText().toString());
+        long phoneNumber = Long.parseLong(_phoneNumberText.getText().toString());
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
 
@@ -251,7 +251,7 @@ public class Registration extends AppCompatActivity {
         return valid;
     }
 
-    private void registerUser(final String email, String password, final String firstName, final String lastName, final String username, final int phoneNumber){
+    private void registerUser(final String email, String password, final String firstName, final String lastName, final String username, final long phoneNumber){
         mDatabase = FirebaseDatabase.getInstance().getReference();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference();
