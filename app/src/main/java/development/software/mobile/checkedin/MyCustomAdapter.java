@@ -79,8 +79,17 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
             view = inflater.inflate(R.layout.custom_list_view, null);
         }
 
+        //boolean accepted = checkRequest(list.get(position).getUid(), group);
         //Handle TextView and display string from your list
         TextView listItemText = (TextView)view.findViewById(R.id.member_email);
+
+        /*if(list.get(position).getEmail().equals(group.getOwner())) {
+            listItemText.setText(list.get(position).getEmail());
+        }
+        else {
+            listItemText.setText(list.get(position).getEmail() + "  Pending");
+        }*/
+
         listItemText.setText(list.get(position).getEmail());
 
         ImageView imageView = view.findViewById(R.id.pp_image);

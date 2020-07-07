@@ -11,11 +11,14 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -27,6 +30,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 
 import development.software.mobile.checkedin.models.Position;
 import development.software.mobile.checkedin.models.User;
@@ -39,15 +43,35 @@ public class CreateGroup extends AppCompatActivity implements LocationListener {
     private DatabaseReference mDatabase;
 
     private User currentUser;
+    private ImageView profile;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_create_group);
+
         Intent intent = getIntent();
+
+        profile = findViewById(R.id.profileImageView);
+
         currentUser = (User)intent.getSerializableExtra("user");
         int position = intent.getIntExtra("tab", 0);
-        setContentView(R.layout.activity_create_group);
+
+        StorageReference sr = FirebaseStorage.getInstance().getReference().child("/profilepictures/"+currentUser.getUid()+"/pp.jpg");
+
+        GlideApp.with(this)
+                .load(sr)
+                .apply(new RequestOptions().override(200, 200))
+                .circleCrop()
+                .into(profile);
+
+        profile.setOnClickListener(v -> {
+            Intent intent1 = new Intent(getApplicationContext(), Profile.class);
+            intent1.putExtra("user", currentUser);
+            startActivity(intent1);
+        });
+
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
@@ -55,14 +79,8 @@ public class CreateGroup extends AppCompatActivity implements LocationListener {
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
 
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 200);
 
         }
@@ -85,8 +103,6 @@ public class CreateGroup extends AppCompatActivity implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-//        System.out.println(location.getLongitude() + " " + location.getLatitude());
-        Log.i("JAY", "Longitude: "+location.getLongitude()+"\nLatitude: "+location.getLatitude());
         updateLocationFirebase(location);
     }
 
@@ -110,6 +126,5 @@ public class CreateGroup extends AppCompatActivity implements LocationListener {
         final DatabaseReference myRef = database.getReference();
         Position pos = new Position(location.getLatitude(), location.getLongitude());
         myRef.child("locations").child(currentUser.getUid()).setValue(pos);
-
     }
 }
