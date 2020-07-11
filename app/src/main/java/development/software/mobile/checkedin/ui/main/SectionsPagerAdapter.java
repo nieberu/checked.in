@@ -12,6 +12,7 @@ import development.software.mobile.checkedin.CreateGroupTab;
 import development.software.mobile.checkedin.JoinGroupTab;
 import development.software.mobile.checkedin.MyGroupTab;
 import development.software.mobile.checkedin.R;
+import development.software.mobile.checkedin.TrackTab;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -20,7 +21,7 @@ import development.software.mobile.checkedin.R;
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @StringRes
-    private static final int[] TAB_TITLES = new int[]{R.string.my_group,R.string.create_group, R.string.join_group};
+    private static final int[] TAB_TITLES = new int[]{R.string.track_tab,R.string.my_group,R.string.create_group, R.string.join_group};
     private final Context mContext;
 
     public SectionsPagerAdapter(Context context, FragmentManager fm) {
@@ -32,12 +33,15 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position){
             case 0:
+                TrackTab tt = new TrackTab();
+                return tt;
+            case 1:
                 MyGroupTab mgt = new MyGroupTab();
                 return mgt;
-            case 1:
+            case 2:
                 CreateGroupTab cgt = new CreateGroupTab();
                 return  cgt;
-            case 2:
+            case 3:
                 JoinGroupTab jgt = new JoinGroupTab();
                 return  jgt;
         }
@@ -53,6 +57,6 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     @Override
     public int getCount() {
         // Show 2 total pages.
-        return 3;
+        return 4;
     }
 }
