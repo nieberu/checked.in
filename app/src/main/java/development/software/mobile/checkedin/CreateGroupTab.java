@@ -20,7 +20,6 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -39,6 +38,7 @@ import development.software.mobile.checkedin.models.Group;
 import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.User;
 import development.software.mobile.checkedin.util.Hashids;
+import development.software.mobile.checkedin.util.MailSender;
 
 public class CreateGroupTab extends Fragment {
 
@@ -101,10 +101,34 @@ public class CreateGroupTab extends Fragment {
                     for (String email : Arrays.asList(members.split("\n"))){
                         memberList.add(new Member(emailMap.get(email), email));
                     }
+                    List<Member> onlyOwner = new ArrayList<>();
+                    onlyOwner.add(memberList.get(0));
                     Group group = new Group(UUID.randomUUID().toString(),groupNameText.getText().toString(),
-                            memberList,currentUser.getEmail(),
+                            onlyOwner ,currentUser.getEmail(),
                             hashids.encode((random.nextInt(10) + 1),(random.nextInt(10) + 1), (random.nextInt(10) + 1)));
                     updateFireBase(group);
+
+
+                    for(int i=0; i<memberList.size(); i++){
+                        int finalI = i;
+                        new Thread(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                try {
+                                    MailSender sender = new MailSender("checked.in2020@gmail.com",
+                                            "Checked.In2020");
+                                    sender.sendMail("checked.in2020@gmail.com", "simojordank@gmail.com", group, currentUser);
+                                } catch (Exception e) {
+                                    Log.i("SendMail", e.getMessage(), e);
+                                }
+                            }
+
+                        }).start();
+                    }
+
+
+                    Toast.makeText(getActivity(), "Members invited to group!", Toast.LENGTH_SHORT).show();
                     TabLayout tabhost = (TabLayout) getActivity().findViewById(R.id.tabs);
                     tabhost.getTabAt(0).select();
                 }
@@ -129,7 +153,7 @@ public class CreateGroupTab extends Fragment {
         return true;
     }
 
-    private void updateFireBase(Group group){
+    private void updateFireBase(final Group group){
         myRef.child("groups").child(group.getUid()).setValue(group);
         for(Member member : group.getMembers()){
             myRef.child("users").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -147,6 +171,5 @@ public class CreateGroupTab extends Fragment {
                 }
             });
         }
-
     }
 }

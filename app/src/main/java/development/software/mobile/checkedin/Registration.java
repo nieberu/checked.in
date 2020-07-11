@@ -46,6 +46,7 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.HashMap;
 
 import butterknife.ButterKnife;
 import butterknife.BindView;
@@ -269,7 +270,6 @@ public class Registration extends AppCompatActivity {
                             User userObject = new User(user.getUid(), firstName, lastName, email, username, phoneNumber);
                             uploadProfilePic(imagePath, user.getUid());
                             myRef.child("users").child(user.getUid()).setValue(userObject);
-
                             onSignupSuccess(userObject);
                         } else {
                             // If sign in fails, display a message to the user.
