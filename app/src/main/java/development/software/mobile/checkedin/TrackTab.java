@@ -1,8 +1,10 @@
 package development.software.mobile.checkedin;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.os.Bundle;
@@ -12,6 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -29,6 +33,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -39,14 +44,27 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.util.List;
+import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
+import com.google.android.gms.maps.GoogleMap.OnCameraMoveCanceledListener;
+import com.google.android.gms.maps.GoogleMap.OnCameraMoveListener;
+import com.google.android.gms.maps.GoogleMap.OnCameraMoveStartedListener;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import development.software.mobile.checkedin.models.CheckIn;
 import development.software.mobile.checkedin.models.Group;
 import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.Position;
 import development.software.mobile.checkedin.models.User;
 
-public class TrackTab extends Fragment implements OnMapReadyCallback {
+public class TrackTab extends Fragment implements OnMapReadyCallback,
+        OnCameraIdleListener,
+        OnCameraMoveCanceledListener,
+        OnCameraMoveListener,
+        OnCameraMoveStartedListener
+{
 
     private GoogleMap googleMap;
     private FirebaseAuth mAuth;
@@ -54,6 +72,11 @@ public class TrackTab extends Fragment implements OnMapReadyCallback {
     private Spinner groupNames;
     private String[] groups;
     private User user;
+    private boolean firstZoomLevel = true;
+    private Context context;
+    private MyBroadcastReceiver broadcastReceiver;
+    private Map<String, Marker> markerMap = new HashMap<>();
+
 
     @Nullable
     @Override
@@ -61,7 +84,9 @@ public class TrackTab extends Fragment implements OnMapReadyCallback {
         mAuth = FirebaseAuth.getInstance();
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference();
+        broadcastReceiver = new MyBroadcastReceiver();
         return inflater.inflate(R.layout.activity_map,container,false);
+
     }
 
     @Override
@@ -70,6 +95,8 @@ public class TrackTab extends Fragment implements OnMapReadyCallback {
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        context = getActivity().getApplicationContext();
+
 
         Intent intent = getActivity().getIntent();
         groupNames = view.findViewById(R.id.group_name_spinner);
@@ -95,9 +122,32 @@ public class TrackTab extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    /**
+     * Called when the zoom in button (the one with the +) is clicked.
+     */
+    public void onZoomIn(View view) {
+        googleMap.moveCamera(CameraUpdateFactory.zoomIn());
+    }
+
+    /**
+     * Called when the zoom out button (the one with the -) is clicked.
+     */
+    public void onZoomOut(View view) {
+        googleMap.moveCamera(CameraUpdateFactory.zoomOut());
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
+
+        googleMap.setOnCameraIdleListener(this);
+        googleMap.setOnCameraMoveStartedListener(this);
+        googleMap.setOnCameraMoveListener(this);
+        googleMap.setOnCameraMoveCanceledListener(this);
+        // [START_EXCLUDE silent]
+        // We will provide our own zoom controls.
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
     }
 
     private void updateSelection(String groupName){
@@ -115,19 +165,53 @@ public class TrackTab extends Fragment implements OnMapReadyCallback {
         });
     }
 
+
+
     private void addMarkers(List<Member> members){
         for(Member member : members){
-            if(member != null){
+            if(member != null && "member".equals(member.getType())){
                 myRef.child("locations").child(member.getUid()).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         Position position = dataSnapshot.getValue(Position.class);
                         LatLng latlang = new LatLng(position.getLatitude(), position.getLongitude());
-                        googleMap.addMarker(generateMarker(member.getUid(), latlang));
-                        CameraPosition cameraPosition = new CameraPosition.Builder().target(latlang).zoom(14.0f).build();
+                        Marker marker = googleMap.addMarker(generateMarker(member.getUid(), latlang));
+                        Marker precMarker = markerMap.get(member.getUid());
+                        if(precMarker != null){
+                            precMarker.remove();
+                            precMarker.setVisible(false);
+                        }
+                        markerMap.put(member.getUid(), marker);
+                        CameraPosition cameraPosition = new CameraPosition.Builder().target(latlang).zoom(11.0f).build();
                         CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
-                        googleMap.moveCamera(cameraUpdate);
+                        if(firstZoomLevel){
+                            googleMap.moveCamera(cameraUpdate);
+                            firstZoomLevel = false;
+                        }
 
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            if(member != null && "checkIn".equals(member.getType())){
+                myRef.child("checkIn").child(member.getUid()).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        CheckIn checkIn = dataSnapshot.getValue(CheckIn.class);
+                        LatLng latlang = checkIn.getLatLng();
+                        Marker marker = googleMap.addMarker(new MarkerOptions().position(latlang).title(checkIn.getName()));
+                        markerMap.put(member.getUid(), marker);
+                        CameraPosition cameraPosition = new CameraPosition.Builder().target(latlang).zoom(11.0f).build();
+                        CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
+                        if(firstZoomLevel){
+                            googleMap.moveCamera(cameraUpdate);
+                            firstZoomLevel = false;
+                        }
                     }
 
                     @Override
@@ -145,12 +229,13 @@ public class TrackTab extends Fragment implements OnMapReadyCallback {
         StorageReference sr = FirebaseStorage.getInstance().getReference().child("/profilepictures/"+uid+"/pp.jpg");
         GlideApp.with(marker.getContext())
                 .load(sr)
-                .apply(new RequestOptions().override(200, 200))
+                .apply(new RequestOptions().override(80, 80))
                 .circleCrop()
                 .into(imageView);
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(latlang)
-                .icon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(getContext(), marker)));
+                .icon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(getContext(), marker)))
+                .zIndex(10f);
         return markerOptions;
     }
 
@@ -168,5 +253,54 @@ public class TrackTab extends Fragment implements OnMapReadyCallback {
         view.draw(canvas);
 
         return bitmap;
+    }
+
+    @Override
+    public void onCameraIdle() {
+
+    }
+
+    @Override
+    public void onCameraMoveCanceled() {
+
+    }
+
+    @Override
+    public void onCameraMove() {
+
+    }
+
+    @Override
+    public void onCameraMoveStarted(int i) {
+
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("user_selected");
+        intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        context.registerReceiver(broadcastReceiver, intentFilter);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    class MyBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String memberid = intent.getStringExtra("memberId");
+            Marker marker = markerMap.get(memberid);
+            if(marker != null){
+                CameraPosition cameraPosition = new CameraPosition.Builder().target(marker.getPosition()).zoom(15.0f).build();
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
+                googleMap.moveCamera(cameraUpdate);
+            }
+
+        }
     }
 }

@@ -35,12 +35,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import development.software.mobile.checkedin.models.Group;
+import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.User;
 
 public class MyGroupTab extends Fragment{
@@ -54,6 +56,8 @@ public class MyGroupTab extends Fragment{
     private TabLayout tabhost;
     private Button addCheckin;
     private String currentGroupName;
+    private Group currentGroup;
+    private ListView checkInListView;
 
 
     @Nullable
@@ -71,6 +75,7 @@ public class MyGroupTab extends Fragment{
         Intent intent = getActivity().getIntent();
         groupNames = view.findViewById(R.id.group_name_spinner);
         listView = view.findViewById(R.id.list_item);
+        checkInListView = view.findViewById(R.id.checkin_list_item);
         addCheckin = view.findViewById(R.id.add_check_in);
         user = (User) intent.getSerializableExtra("user");
         groups = user.getGroupMap().keySet().toArray(new String[user.getGroupMap().keySet().size()]);
@@ -100,7 +105,8 @@ public class MyGroupTab extends Fragment{
             public void onClick(View v) {
                 Intent checkInIntent = new Intent(getActivity().getApplicationContext(), CheckinActivity.class);
                 checkInIntent.putExtra("user", user);
-                checkInIntent.putExtra("groupName", currentGroupName);
+                checkInIntent.putExtra("group", currentGroup);
+                startActivity(checkInIntent);
             }
         });
     }
@@ -110,9 +116,21 @@ public class MyGroupTab extends Fragment{
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Group group = dataSnapshot.getValue(Group.class);
+                currentGroup = group;
                 group.getMembers().removeAll(Collections.singleton(null));
-                MyCustomAdapter myCustomAdapter = new MyCustomAdapter(group.getMembers(), getContext(),user.getEmail().equals(group.getOwner()),group,tabhost);
+                List<Member> memberList = new ArrayList<>();
+                List<Member> checkInList = new ArrayList<>();
+                for (Member member : group.getMembers()){
+                    if("member".equals(member.getType())){
+                        memberList.add(member);
+                    }else{
+                        checkInList.add(member);
+                    }
+                }
+                MyCustomAdapter myCustomAdapter = new MyCustomAdapter(memberList, getContext(),user.getEmail().equals(group.getOwner()),group,tabhost);
                 listView.setAdapter(myCustomAdapter);
+                MyCheckinAdapter myCheckInAdapter = new MyCheckinAdapter(checkInList, getContext(),user.getEmail().equals(group.getOwner()),group,tabhost);
+                checkInListView.setAdapter(myCheckInAdapter);
             }
 
             @Override
