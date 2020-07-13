@@ -25,5 +25,6 @@
     <string name="track_tab">Track</string>
     <string name="channel_name">CheckedIn</string>
     <string name="channel_description">CheckedInMessages</string>
+    <string name="cancel">Cancel</string>
 
 </resources>

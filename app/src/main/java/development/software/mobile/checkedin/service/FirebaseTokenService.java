@@ -21,6 +21,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.util.Map;
 
 import development.software.mobile.checkedin.CreateGroup;
 import development.software.mobile.checkedin.R;
@@ -31,11 +35,13 @@ public class FirebaseTokenService extends FirebaseMessagingService {
 
     private FirebaseAuth mAuth;
     private  DatabaseReference myRef;
+    private Gson gson;
 
     public FirebaseTokenService(){
         mAuth = FirebaseAuth.getInstance();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference();
+        gson = new Gson();
     }
 
     @Override
@@ -68,17 +74,28 @@ public class FirebaseTokenService extends FirebaseMessagingService {
                     // whenever data at this location is updated.
                     User  user = dataSnapshot.getValue(User.class);
                     if(user != null){
+                        String title =remoteMessage.getData().get("title");
+                        String message=remoteMessage.getData().get("message");
+                        String type =remoteMessage.getData().get("type");
+                        Map<String, String> additionalFields = gson.fromJson(remoteMessage.getData().get("additionalFields"), new TypeToken<Map<String, String>>(){}.getType());
+
                         Intent intent = new Intent(getApplicationContext(), CreateGroup.class);
                         intent.putExtra("user", user);
-                        if(user.getGroupMap().size() > 0) {
+                        if("JoinGroup".equals(type)){
+                            intent.putExtra("groupName", additionalFields.get("name"));
+                            intent.putExtra("email", additionalFields.get("email"));
+                            intent.putExtra("key", additionalFields.get("key"));
+                            intent.putExtra("tab", 3);
+                        }
+                        else if(user.getGroupMap().size() > 0) {
                             intent.putExtra("tab", 0);
                         } else {
                             intent.putExtra("tab", 1);
                         };
+
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         PendingIntent pendingIntent = PendingIntent.getActivity(FirebaseTokenService.this, 0, intent, 0);
-                        String title =remoteMessage.getData().get("title");
-                        String message=remoteMessage.getData().get("message");
+
                         NotificationCompat.Builder builder =
                                 new NotificationCompat.Builder(getApplicationContext(), "checkedIn")
                                         .setSmallIcon(R.drawable.logo)

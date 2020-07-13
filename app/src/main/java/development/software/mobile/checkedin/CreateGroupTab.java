@@ -130,7 +130,10 @@ public class CreateGroupTab extends Fragment {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                             Token token = dataSnapshot.getValue(Token.class);
-                                            Data data = new Data("Create Group", "You have been invited to a group!");
+                                            Data data = new Data("Join Group", "You have been invited to a group!","JoinGroup");
+                                            data.getAdditionalFields().put("name",group.getName());
+                                            data.getAdditionalFields().put("email",group.getOwner());
+                                            data.getAdditionalFields().put("key",group.getKey());
                                             pushNotification.sendNotification(token.getToken(),data);
                                         }
 

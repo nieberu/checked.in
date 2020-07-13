@@ -41,6 +41,7 @@ public class JoinGroupTab extends Fragment {
     private FirebaseAuth mAuth;
     private DatabaseReference myRef;
     private Button joinButton;
+    private Button cancelButton;
     private EditText groupNameText;
     private EditText groupKeyText;
     private EditText ownerEmailText;
@@ -59,9 +60,29 @@ public class JoinGroupTab extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         Intent intent = getActivity().getIntent();
         currentUser = (User) intent.getSerializableExtra("user");
+
         groupNameText = (EditText) view.findViewById(R.id.group_name) ;
+
+        /* set group name for Join Request */
+        String groupName = intent.getStringExtra("groupName");
+        if(groupName != null){
+            groupNameText.setText(groupName);
+        }
         groupKeyText = (EditText) view.findViewById(R.id.group_key) ;
+
+        /* set key for Join Request */
+        String key = intent.getStringExtra("key");
+        if(key != null){
+            groupKeyText.setText(key);
+        }
         ownerEmailText = (EditText) view.findViewById(R.id.owner_email) ;
+
+        /* set Owner Email for Join Request */
+        String email = intent.getStringExtra("email");
+        if(email != null){
+            ownerEmailText.setText(email);
+        }
+
         joinButton = (Button) view.findViewById(R.id.btn_join);
         joinButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.N)
@@ -96,6 +117,15 @@ public class JoinGroupTab extends Fragment {
 
                    }
                });
+            }
+        });
+
+        cancelButton = (Button) view.findViewById(R.id.btn_cancel);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TabLayout tabhost = (TabLayout) getActivity().findViewById(R.id.tabs);
+                tabhost.getTabAt(0).select();
             }
         });
     }
