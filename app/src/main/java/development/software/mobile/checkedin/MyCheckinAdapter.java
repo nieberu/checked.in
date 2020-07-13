@@ -14,13 +14,9 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-
 import androidx.annotation.NonNull;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.firebase.ui.storage.images.FirebaseImageLoader;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -40,7 +36,7 @@ import development.software.mobile.checkedin.models.Group;
 import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.User;
 
-public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
+public class MyCheckinAdapter extends BaseAdapter implements ListAdapter {
 
     private FirebaseAuth mAuth;
     private DatabaseReference myRef;
@@ -52,7 +48,7 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
 
 
 
-    public MyCustomAdapter(List<Member> list, Context context, boolean isOwner, Group group, TabLayout tabHost) {
+    public MyCheckinAdapter(List<Member> list, Context context, boolean isOwner, Group group, TabLayout tabHost) {
         mAuth = FirebaseAuth.getInstance();
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference();
@@ -84,12 +80,14 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
         View view = convertView;
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.custom_list_view, null);
+            view = inflater.inflate(R.layout.checkin_list_view, null);
         }
 
         //boolean accepted = checkRequest(list.get(position).getUid(), group);
         //Handle TextView and display string from your list
-        TextView listItemText = (TextView)view.findViewById(R.id.member_email);
+        TextView listItemText = (TextView)view.findViewById(R.id.check_in_name);
+
+        TextView addressTest = (TextView)view.findViewById(R.id.check_in_address);
 
         /*if(list.get(position).getEmail().equals(group.getOwner())) {
             listItemText.setText(list.get(position).getEmail());
@@ -98,8 +96,10 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
             listItemText.setText(list.get(position).getEmail() + "  Pending");
         }*/
 
-        listItemText.setText(list.get(position).getEmail());
+        listItemText.setText(list.get(position).getEmail().split("\\|\\|")[0]);
         listItemText.setMovementMethod(LinkMovementMethod.getInstance());
+
+        addressTest.setText(list.get(position).getEmail().split("\\|\\|")[1]);
 
         Spannable spans = (Spannable) listItemText.getText();
         ClickableSpan clickSpan = new ClickableSpan() {
@@ -116,44 +116,6 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
             }
         };
         spans.setSpan(clickSpan, 0, spans.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        ImageView imageView = view.findViewById(R.id.pp_image);
-        StorageReference sr = FirebaseStorage.getInstance().getReference().child("/profilepictures/"+list.get(position).getUid()+"/pp.jpg");
-
-
-        GlideApp.with(view.getContext())
-                .load(sr)
-                .apply(new RequestOptions().override(200, 200))
-                .circleCrop()
-                .into(imageView);
-
-        //Handle buttons and add onClickListeners
-        Button removebtn = (Button)view.findViewById(R.id.btn_remove);
-        removebtn.setEnabled(isOwner);
-        removebtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                Map<String, Object> childUpdates = new HashMap<>();
-                Member member = list.get(position);
-                group.getMembers().remove(position);
-                childUpdates.put("/groups/"+group.getUid(),group);
-                myRef.updateChildren(childUpdates);
-                myRef.child("users").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
-                        user.getGroupMap().remove(group.getName());
-                        Map<String, Object> childUpdates = new HashMap<>();
-                        childUpdates.put("/users/"+user.getUid(),user);
-                        myRef.updateChildren(childUpdates);
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-            }
-        });
 
         return view;
     }

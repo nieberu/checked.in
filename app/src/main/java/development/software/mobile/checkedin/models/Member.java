@@ -1,10 +1,14 @@
 package development.software.mobile.checkedin.models;
 
-public class Member {
+import java.io.Serializable;
+
+public class Member implements Serializable {
 
     private String uid;
 
     private String email;
+
+    private String type;
 
     public Member(){};
 
@@ -27,5 +31,13 @@ public class Member {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

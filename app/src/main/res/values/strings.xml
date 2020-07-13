@@ -22,5 +22,6 @@
     <string name="group_owner_email">Group Owner Email</string>
     <string name="uploadPicture">Please upload a profile picture</string>
     <string name="remove_member">Remove</string>
+    <string name="track_tab">Track</string>
 
 </resources>
