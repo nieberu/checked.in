@@ -230,7 +230,7 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
         GlideApp.with(marker.getContext())
                 .load(sr)
                 .apply(new RequestOptions().override(80, 80))
-                .circleCrop()
+                .centerCrop()
                 .into(imageView);
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(latlang)

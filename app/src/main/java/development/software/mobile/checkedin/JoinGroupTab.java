@@ -101,7 +101,7 @@ public class JoinGroupTab extends Fragment {
     }
 
     private void updateFireBase(Group group){
-        group.getMembers().add(new Member(currentUser.getUid(), currentUser.getEmail()));
+        group.getMembers().add(new Member(currentUser.getUid(), currentUser.getEmail(), "member"));
         currentUser.getGroupMap().put(group.getName(), group.getUid());
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/groups/"+group.getUid(),group);
