@@ -14,6 +14,7 @@ public class User implements Serializable {
     private String userName;
     private long phoneNumber;
     private Map<String, String> groupMap;
+    private Map<String, String> checkInMap;
 
     public User(String uid, String firstName, String lastName, String email, String userName, long phoneNumber){
         this.uid = uid;
@@ -80,6 +81,17 @@ public class User implements Serializable {
         this.groupMap = groupMap;
     }
 
+    public Map<String, String> getCheckInMap() {
+        if(checkInMap == null){
+            checkInMap = new HashMap<>();
+        }
+        return checkInMap;
+    }
+
+    public void setCheckInMap(Map<String, String> checkInMap) {
+        this.checkInMap = checkInMap;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -90,6 +102,7 @@ public class User implements Serializable {
                 ", userName='" + userName + '\'' +
                 ", phoneNumber=" + phoneNumber +
                 ", groupMap=" + groupMap +
+                ", checkInMap=" + checkInMap +
                 '}';
     }
 }
