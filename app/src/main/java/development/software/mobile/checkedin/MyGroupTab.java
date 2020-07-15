@@ -81,9 +81,10 @@ public class MyGroupTab extends Fragment{
         groups = user.getGroupMap().keySet().toArray(new String[user.getGroupMap().keySet().size()]);
         ArrayAdapter<String> adapter = new ArrayAdapter(getContext(), android.R.layout.simple_spinner_dropdown_item, groups);
         groupNames.setAdapter(adapter);
+        String groupName = intent.getStringExtra("groupName");
         if(groups.length > 0){
-            currentGroupName = groups[0];
-            updateSelection(groups[0]);
+            currentGroupName = groupName == null ? groups[0]: groupName;
+            updateSelection(currentGroupName);
         }
 
         groupNames.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -91,7 +92,7 @@ public class MyGroupTab extends Fragment{
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String groupName = groups[position];
                 currentGroupName = groupName;
-                updateSelection(groupName);
+                updateSelection(currentGroupName);
             }
 
             @Override

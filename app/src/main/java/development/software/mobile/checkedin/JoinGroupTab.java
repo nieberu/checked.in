@@ -3,6 +3,7 @@ package development.software.mobile.checkedin;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,8 +34,12 @@ import java.util.UUID;
 
 import development.software.mobile.checkedin.models.Group;
 import development.software.mobile.checkedin.models.Member;
+import development.software.mobile.checkedin.models.Token;
 import development.software.mobile.checkedin.models.User;
+import development.software.mobile.checkedin.notification.Data;
 import development.software.mobile.checkedin.util.Hashids;
+import development.software.mobile.checkedin.util.MailSender;
+import development.software.mobile.checkedin.util.PushNotification;
 
 public class JoinGroupTab extends Fragment {
 
@@ -46,6 +51,7 @@ public class JoinGroupTab extends Fragment {
     private EditText groupKeyText;
     private EditText ownerEmailText;
     private User currentUser;
+    private PushNotification pushNotification;
 
     @Nullable
     @Override
@@ -53,6 +59,7 @@ public class JoinGroupTab extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference();
+        pushNotification = PushNotification.builder();
         return inflater.inflate(R.layout.join_group_tab,container,false);
     }
 
@@ -137,5 +144,37 @@ public class JoinGroupTab extends Fragment {
         childUpdates.put("/groups/"+group.getUid(),group);
         childUpdates.put("/users/"+currentUser.getUid(),currentUser);
         myRef.updateChildren(childUpdates);
+        for(int i=0; i<group.getMembers().size(); i++){
+            int finalI = i;
+            Member member = group.getMembers().get(i);
+            new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        if("member".equals(member.getType())){
+                            myRef.child("Tokens").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    Token token = dataSnapshot.getValue(Token.class);
+                                    if(token != null){
+                                        Data data = new Data("Join Group", currentUser.getFirstName() + currentUser.getLastName() + " has been Joined in group "+group.getName()+"!","MemberAdded");
+                                        data.getAdditionalFields().put("name",group.getName());
+                                        pushNotification.sendNotification(token.getToken(),data);
+                                    }
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+                    } catch (Exception e) {
+                        Log.i("SendMail", e.getMessage(), e);
+                    }
+                }
+
+            }).start();
+        }
     }
 }

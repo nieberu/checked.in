@@ -86,6 +86,9 @@ public class FirebaseTokenService extends FirebaseMessagingService {
                             intent.putExtra("email", additionalFields.get("email"));
                             intent.putExtra("key", additionalFields.get("key"));
                             intent.putExtra("tab", 3);
+                        } else if("MemberAdded".equals(type)){
+                            intent.putExtra("groupName", additionalFields.get("name"));
+                            intent.putExtra("tab", 1);
                         }
                         else if(user.getGroupMap().size() > 0) {
                             intent.putExtra("tab", 0);

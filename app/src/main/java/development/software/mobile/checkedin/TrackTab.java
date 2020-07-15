@@ -7,11 +7,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Interpolator;
+import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -29,6 +34,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -151,6 +157,10 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
     }
 
     private void updateSelection(String groupName){
+        if(googleMap != null){
+            googleMap.clear();
+            markerMap.clear();
+        }
         myRef.child("groups").child(user.getGroupMap().get(groupName)).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -175,13 +185,16 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         Position position = dataSnapshot.getValue(Position.class);
                         LatLng latlang = new LatLng(position.getLatitude(), position.getLongitude());
-                        Marker marker = googleMap.addMarker(generateMarker(member.getUid(), latlang));
-                        Marker precMarker = markerMap.get(member.getUid());
-                        if(precMarker != null){
-                            precMarker.remove();
-                            precMarker.setVisible(false);
+
+                        Marker prevMarker = markerMap.get(member.getUid());
+                        if(prevMarker != null){
+                            prevMarker.setVisible(true);
+                            animateMarker(prevMarker,latlang,false);
+                        }else {
+                            Marker marker = googleMap.addMarker(generateMarker(member.getUid(), latlang));
+                            markerMap.put(member.getUid(), marker);
                         }
-                        markerMap.put(member.getUid(), marker);
+
                         CameraPosition cameraPosition = new CameraPosition.Builder().target(latlang).zoom(11.0f).build();
                         CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
                         if(firstZoomLevel){
@@ -230,7 +243,7 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
         GlideApp.with(marker.getContext())
                 .load(sr)
                 .apply(new RequestOptions().override(80, 80))
-                .centerCrop()
+                .circleCrop()
                 .into(imageView);
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(latlang)
@@ -253,6 +266,43 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
         view.draw(canvas);
 
         return bitmap;
+    }
+
+    public void animateMarker(final Marker marker, final LatLng toPosition,
+                              final boolean hideMarker) {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        Projection proj = googleMap.getProjection();
+        Point startPoint = proj.toScreenLocation(marker.getPosition());
+        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+        final long duration = 1000;
+
+        final LinearInterpolator interpolator = new LinearInterpolator();
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed
+                        / duration);
+                double lng = t * toPosition.longitude + (1 - t)
+                        * startLatLng.longitude;
+                double lat = t * toPosition.latitude + (1 - t)
+                        * startLatLng.latitude;
+                marker.setPosition(new LatLng(lat, lng));
+
+                if (t < 1.0) {
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 16);
+                } else {
+                    if (hideMarker) {
+                        marker.setVisible(false);
+                    } else {
+                        marker.setVisible(true);
+                    }
+                }
+            }
+        });
     }
 
     @Override

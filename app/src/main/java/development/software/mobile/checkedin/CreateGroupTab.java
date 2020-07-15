@@ -118,31 +118,34 @@ public class CreateGroupTab extends Fragment {
 
                     for(int i=0; i<memberList.size(); i++){
                         int finalI = i;
+                        Member member = memberList.get(i);
                         new Thread(new Runnable() {
 
                             @Override
                             public void run() {
                                 try {
-                                    MailSender sender = new MailSender("checked.in2020@gmail.com",
-                                            "Checked.In2020");
-                                    sender.sendMail("checked.in2020@gmail.com", memberList.get(finalI).getEmail(), group, currentUser);
-                                    myRef.child("Tokens").child(memberList.get(finalI).getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                            Token token = dataSnapshot.getValue(Token.class);
-                                            Data data = new Data("Join Group", "You have been invited to a group!","JoinGroup");
-                                            data.getAdditionalFields().put("name",group.getName());
-                                            data.getAdditionalFields().put("email",group.getOwner());
-                                            data.getAdditionalFields().put("key",group.getKey());
-                                            pushNotification.sendNotification(token.getToken(),data);
-                                        }
+                                    if(member.getEmail() != currentUser.getEmail()){
+                                        MailSender sender = new MailSender("checked.in2020@gmail.com",
+                                                "Checked.In2020");
+                                        sender.sendMail("checked.in2020@gmail.com", memberList.get(finalI).getEmail(), group, currentUser);
+                                        myRef.child("Tokens").child(memberList.get(finalI).getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                Token token = dataSnapshot.getValue(Token.class);
+                                                if(token != null){
+                                                    Data data = new Data("Join Group", "You have been invited to a group "+group.getName()+"!","JoinGroup");
+                                                    data.getAdditionalFields().put("name",group.getName());
+                                                    data.getAdditionalFields().put("email",group.getOwner());
+                                                    data.getAdditionalFields().put("key",group.getKey());
+                                                    pushNotification.sendNotification(token.getToken(),data);
+                                                }
+                                            }
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                                        }
-                                    });
-
+                                            }
+                                        });
+                                    }
                                 } catch (Exception e) {
                                     Log.i("SendMail", e.getMessage(), e);
                                 }
