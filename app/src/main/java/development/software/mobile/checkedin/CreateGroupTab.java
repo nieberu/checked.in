@@ -36,9 +36,14 @@ import java.util.UUID;
 
 import development.software.mobile.checkedin.models.Group;
 import development.software.mobile.checkedin.models.Member;
+import development.software.mobile.checkedin.models.Token;
 import development.software.mobile.checkedin.models.User;
+import development.software.mobile.checkedin.notification.Client;
+import development.software.mobile.checkedin.notification.Data;
+import development.software.mobile.checkedin.service.NotifictionService;
 import development.software.mobile.checkedin.util.Hashids;
 import development.software.mobile.checkedin.util.MailSender;
+import development.software.mobile.checkedin.util.PushNotification;
 
 public class CreateGroupTab extends Fragment {
 
@@ -52,6 +57,7 @@ public class CreateGroupTab extends Fragment {
     private Hashids hashids = new Hashids("CheckedInrandomGroupKey",6);
     private Random random = new Random();
     private User currentUser;
+    private PushNotification pushNotification;
 
     @Nullable
     @Override
@@ -61,6 +67,7 @@ public class CreateGroupTab extends Fragment {
         myRef = database.getReference();
         emailAddressList = new ArrayList<>();
         emailMap = new HashMap<>();
+        pushNotification = PushNotification.builder();
         myRef.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -99,7 +106,7 @@ public class CreateGroupTab extends Fragment {
                     String members = currentUser.getEmail() + "\n" + friends.getText().toString();
                     List<Member> memberList = new ArrayList<>();
                     for (String email : Arrays.asList(members.split("\n"))){
-                        memberList.add(new Member(emailMap.get(email), email));
+                        memberList.add(new Member(emailMap.get(email), email, "member"));
                     }
                     List<Member> onlyOwner = new ArrayList<>();
                     onlyOwner.add(memberList.get(0));
@@ -111,14 +118,34 @@ public class CreateGroupTab extends Fragment {
 
                     for(int i=0; i<memberList.size(); i++){
                         int finalI = i;
+                        Member member = memberList.get(i);
                         new Thread(new Runnable() {
 
                             @Override
                             public void run() {
                                 try {
-                                    MailSender sender = new MailSender("checked.in2020@gmail.com",
-                                            "Checked.In2020");
-                                    sender.sendMail("checked.in2020@gmail.com", memberList.get(finalI).getEmail(), group, currentUser);
+                                    if(member.getEmail() != currentUser.getEmail()){
+                                        MailSender sender = new MailSender("checked.in2020@gmail.com",
+                                                "Checked.In2020");
+                                        sender.sendMail("checked.in2020@gmail.com", memberList.get(finalI).getEmail(), group, currentUser);
+                                        myRef.child("Tokens").child(memberList.get(finalI).getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                Token token = dataSnapshot.getValue(Token.class);
+                                                if(token != null){
+                                                    Data data = new Data("Join Group", "You have been invited to a group "+group.getName()+"!","JoinGroup");
+                                                    data.getAdditionalFields().put("name",group.getName());
+                                                    data.getAdditionalFields().put("email",group.getOwner());
+                                                    data.getAdditionalFields().put("key",group.getKey());
+                                                    pushNotification.sendNotification(token.getToken(),data);
+                                                }
+                                            }
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                            }
+                                        });
+                                    }
                                 } catch (Exception e) {
                                     Log.i("SendMail", e.getMessage(), e);
                                 }

@@ -28,7 +28,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
+import development.software.mobile.checkedin.models.Token;
 import development.software.mobile.checkedin.models.User;
 
 public class Login extends AppCompatActivity {
@@ -92,9 +94,9 @@ public class Login extends AppCompatActivity {
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
-//            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-//            startActivity(intent);
-//            finish();
+             // Updating the token.
+            Token token = new Token(FirebaseInstanceId.getInstance().getToken());
+            FirebaseDatabase.getInstance().getReference("Tokens").child(currentUser.getUid()).setValue(token);
             myRef.child("users").child(currentUser.getUid()).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {

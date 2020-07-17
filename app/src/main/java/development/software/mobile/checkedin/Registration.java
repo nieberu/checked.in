@@ -40,6 +40,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -50,6 +51,7 @@ import java.util.HashMap;
 
 import butterknife.ButterKnife;
 import butterknife.BindView;
+import development.software.mobile.checkedin.models.Token;
 import development.software.mobile.checkedin.models.User;
 
 public class Registration extends AppCompatActivity {
@@ -270,6 +272,8 @@ public class Registration extends AppCompatActivity {
                             User userObject = new User(user.getUid(), firstName, lastName, email, username, phoneNumber);
                             uploadProfilePic(imagePath, user.getUid());
                             myRef.child("users").child(user.getUid()).setValue(userObject);
+                            Token token = new Token(FirebaseInstanceId.getInstance().getToken());
+                            FirebaseDatabase.getInstance().getReference("Tokens").child(user.getUid()).setValue(token);
                             onSignupSuccess(userObject);
                         } else {
                             // If sign in fails, display a message to the user.

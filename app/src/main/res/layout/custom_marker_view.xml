@@ -3,14 +3,17 @@
 android:layout_width="wrap_content"
 android:layout_height="wrap_content" >
 
+    <ImageView
+        android:layout_width="42.5dp"
+        android:layout_height="47dp"
+        android:src="@drawable/custom_marker">
+    </ImageView>
 
 <ImageView
     android:id="@+id/pp_image"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="5dp"
-    android:layout_marginTop="5dp"
-    android:background="#000000"
-    android:padding="1dp"/>
+    android:layout_marginLeft="6dp"
+    android:layout_marginTop="4dp"/>
 
 </RelativeLayout>
