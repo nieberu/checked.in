@@ -118,7 +118,7 @@ public class CreateGroupTab extends Fragment {
                                 try {
                                     MailSender sender = new MailSender("checked.in2020@gmail.com",
                                             "Checked.In2020");
-                                    sender.sendMail("checked.in2020@gmail.com", "simojordank@gmail.com", group, currentUser);
+                                    sender.sendMail("checked.in2020@gmail.com", memberList.get(finalI).getEmail(), group, currentUser);
                                 } catch (Exception e) {
                                     Log.i("SendMail", e.getMessage(), e);
                                 }
