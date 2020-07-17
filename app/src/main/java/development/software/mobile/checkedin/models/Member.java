@@ -12,9 +12,10 @@ public class Member implements Serializable {
 
     public Member(){};
 
-    public Member(String uid, String email) {
+    public Member(String uid, String email, String type) {
         this.uid = uid;
         this.email = email;
+        this.type = type;
     }
 
     public String getUid() {

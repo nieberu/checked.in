@@ -318,10 +318,7 @@ public class CheckinActivity extends AppCompatActivity implements OnMapReadyCall
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Group group = dataSnapshot.getValue(Group.class);
                 group.getMembers().removeAll(Collections.singleton(null));
-                Member member = new Member();
-                member.setUid(checkIn.getUid());
-                member.setEmail(checkIn.getName() + "||" + checkIn.getAddress());
-                member.setType("checkIn");
+                Member member = new Member(checkIn.getUid(),checkIn.getName() + "||" + checkIn.getAddress(),"checkIn");
                 group.getMembers().add(member);
                 Map<String, Object> childUpdates = new HashMap<>();
                 childUpdates.put("/groups/"+group.getUid(),group);

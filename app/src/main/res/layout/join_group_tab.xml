@@ -45,15 +45,33 @@
             android:hint="@string/group_owner_email"
             android:inputType="textEmailAddress" />
 
-
-        <Button
-            android:id="@+id/btn_join"
-            android:layout_width="fill_parent"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="24dp"
-            android:padding="12dp"
-            android:text="@string/join_group" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_join"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:padding="12dp"
+                android:text="@string/join_group"
+                android:layout_weight="1"/>
+
+            <Button
+                android:id="@+id/btn_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:padding="12dp"
+                android:text="@string/cancel"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
 
     </LinearLayout>
 </ScrollView>

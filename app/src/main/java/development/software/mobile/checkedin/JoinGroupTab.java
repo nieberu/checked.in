@@ -3,6 +3,7 @@ package development.software.mobile.checkedin;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,18 +34,24 @@ import java.util.UUID;
 
 import development.software.mobile.checkedin.models.Group;
 import development.software.mobile.checkedin.models.Member;
+import development.software.mobile.checkedin.models.Token;
 import development.software.mobile.checkedin.models.User;
+import development.software.mobile.checkedin.notification.Data;
 import development.software.mobile.checkedin.util.Hashids;
+import development.software.mobile.checkedin.util.MailSender;
+import development.software.mobile.checkedin.util.PushNotification;
 
 public class JoinGroupTab extends Fragment {
 
     private FirebaseAuth mAuth;
     private DatabaseReference myRef;
     private Button joinButton;
+    private Button cancelButton;
     private EditText groupNameText;
     private EditText groupKeyText;
     private EditText ownerEmailText;
     private User currentUser;
+    private PushNotification pushNotification;
 
     @Nullable
     @Override
@@ -52,6 +59,7 @@ public class JoinGroupTab extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference();
+        pushNotification = PushNotification.builder();
         return inflater.inflate(R.layout.join_group_tab,container,false);
     }
 
@@ -59,9 +67,29 @@ public class JoinGroupTab extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         Intent intent = getActivity().getIntent();
         currentUser = (User) intent.getSerializableExtra("user");
+
         groupNameText = (EditText) view.findViewById(R.id.group_name) ;
+
+        /* set group name for Join Request */
+        String groupName = intent.getStringExtra("groupName");
+        if(groupName != null){
+            groupNameText.setText(groupName);
+        }
         groupKeyText = (EditText) view.findViewById(R.id.group_key) ;
+
+        /* set key for Join Request */
+        String key = intent.getStringExtra("key");
+        if(key != null){
+            groupKeyText.setText(key);
+        }
         ownerEmailText = (EditText) view.findViewById(R.id.owner_email) ;
+
+        /* set Owner Email for Join Request */
+        String email = intent.getStringExtra("email");
+        if(email != null){
+            ownerEmailText.setText(email);
+        }
+
         joinButton = (Button) view.findViewById(R.id.btn_join);
         joinButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.N)
@@ -98,14 +126,55 @@ public class JoinGroupTab extends Fragment {
                });
             }
         });
+
+        cancelButton = (Button) view.findViewById(R.id.btn_cancel);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TabLayout tabhost = (TabLayout) getActivity().findViewById(R.id.tabs);
+                tabhost.getTabAt(0).select();
+            }
+        });
     }
 
     private void updateFireBase(Group group){
-        group.getMembers().add(new Member(currentUser.getUid(), currentUser.getEmail()));
+        group.getMembers().add(new Member(currentUser.getUid(), currentUser.getEmail(), "member"));
         currentUser.getGroupMap().put(group.getName(), group.getUid());
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/groups/"+group.getUid(),group);
         childUpdates.put("/users/"+currentUser.getUid(),currentUser);
         myRef.updateChildren(childUpdates);
+        for(int i=0; i<group.getMembers().size(); i++){
+            int finalI = i;
+            Member member = group.getMembers().get(i);
+            new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        if("member".equals(member.getType())){
+                            myRef.child("Tokens").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    Token token = dataSnapshot.getValue(Token.class);
+                                    if(token != null){
+                                        Data data = new Data("Join Group", currentUser.getFirstName() + currentUser.getLastName() + " has been Joined in group "+group.getName()+"!","MemberAdded");
+                                        data.getAdditionalFields().put("name",group.getName());
+                                        pushNotification.sendNotification(token.getToken(),data);
+                                    }
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+                    } catch (Exception e) {
+                        Log.i("SendMail", e.getMessage(), e);
+                    }
+                }
+
+            }).start();
+        }
     }
 }
