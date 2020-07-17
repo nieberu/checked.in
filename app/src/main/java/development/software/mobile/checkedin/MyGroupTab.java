@@ -1,9 +1,13 @@
 package development.software.mobile.checkedin;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
@@ -19,6 +23,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,6 +49,7 @@ import java.util.UUID;
 import development.software.mobile.checkedin.models.Group;
 import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.User;
+import development.software.mobile.checkedin.util.ShakeDetector;
 
 public class MyGroupTab extends Fragment{
 
@@ -58,6 +64,12 @@ public class MyGroupTab extends Fragment{
     private String currentGroupName;
     private Group currentGroup;
     private ListView checkInListView;
+    private TextView groupKey;
+
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private ShakeDetector mShakeDetector;
+
 
 
     @Nullable
@@ -66,6 +78,42 @@ public class MyGroupTab extends Fragment{
         mAuth = FirebaseAuth.getInstance();
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference();
+
+        //Handling shaking detection
+        mSensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mShakeDetector = new ShakeDetector();
+        mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+        mShakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
+            @Override
+            public void onShake(int count) {
+                if(user.getEmail().equals(currentGroup.getOwner())){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    builder.setTitle("Delete group");
+                    builder.setMessage("Are you sure you want to delete your group: "+currentGroup.getName()+"?")
+                            .setCancelable(false)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Toast.makeText(getContext(), "Clicked on delete", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                }
+                else{
+                    Toast.makeText(getContext(), "You are not the owner of this group. You can't delete it", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         return inflater.inflate(R.layout.my_group_tab,container,false);
     }
 
@@ -73,6 +121,7 @@ public class MyGroupTab extends Fragment{
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         tabhost = (TabLayout) getActivity().findViewById(R.id.tabs);
         Intent intent = getActivity().getIntent();
+        groupKey = view.findViewById(R.id.groupKeyTextView);
         groupNames = view.findViewById(R.id.group_name_spinner);
         listView = view.findViewById(R.id.list_item);
         checkInListView = view.findViewById(R.id.checkin_list_item);
@@ -109,6 +158,8 @@ public class MyGroupTab extends Fragment{
                 startActivity(checkInIntent);
             }
         });
+
+
     }
 
     private void updateSelection(String groupName){
@@ -117,6 +168,9 @@ public class MyGroupTab extends Fragment{
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Group group = dataSnapshot.getValue(Group.class);
                 currentGroup = group;
+                groupKey.setText("Group Key: "+currentGroup.getKey());
+                if(!user.getEmail().equals(group.getOwner()))
+                    groupKey.setVisibility(View.GONE);
                 group.getMembers().removeAll(Collections.singleton(null));
                 List<Member> memberList = new ArrayList<>();
                 List<Member> checkInList = new ArrayList<>();
@@ -138,5 +192,21 @@ public class MyGroupTab extends Fragment{
 
             }
         });
+    }
+
+    public void deleteGroup(){
+        myRef.child("groups").child(currentGroup.getUid()).removeValue();
+    }
+
+    @Override
+    public void onPause(){
+        mSensorManager.unregisterListener(mShakeDetector);
+        super.onPause();
+    }
+
+    @Override
+    public void onResume(){
+        mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+        super.onResume();
     }
 }
