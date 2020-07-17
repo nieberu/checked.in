@@ -124,7 +124,8 @@ public class CreateGroup extends AppCompatActivity implements LocationListener {
     public void updateLocationFirebase(Location location){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference();
-        Position pos = new Position(location.getLatitude(), location.getLongitude());
+        Log.i("Speed", "Lat : "+location.getLatitude() + " lon : " + location.getLongitude() + " speed : " + location.getSpeed());
+        Position pos = new Position(location.getLatitude(), location.getLongitude(), location.getSpeed());
         myRef.child("locations").child(currentUser.getUid()).setValue(pos);
     }
 }
