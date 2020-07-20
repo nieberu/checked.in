@@ -12,11 +12,15 @@ import android.os.Build;
 import android.os.Bundle;
 
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -32,15 +36,27 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import development.software.mobile.checkedin.models.CheckIn;
+import development.software.mobile.checkedin.models.Group;
+import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.Position;
+import development.software.mobile.checkedin.models.Token;
 import development.software.mobile.checkedin.models.User;
+import development.software.mobile.checkedin.notification.Data;
 import development.software.mobile.checkedin.ui.main.SectionsPagerAdapter;
+import development.software.mobile.checkedin.util.PushNotification;
 
 public class CreateGroup extends AppCompatActivity implements LocationListener {
 
     protected LocationManager locationManager;
     protected LocationListener locationListener;
     private DatabaseReference mDatabase;
+    Map<LatLng,CheckIn> checkInMap = new HashMap<>();
+    private PushNotification pushNotification;;
+
 
     private User currentUser;
     private ImageView profile;
@@ -50,13 +66,17 @@ public class CreateGroup extends AppCompatActivity implements LocationListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_group);
-
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        mDatabase = database.getReference();
+        pushNotification = PushNotification.builder();
         Intent intent = getIntent();
+
 
         profile = findViewById(R.id.profileImageView);
 
         currentUser = (User)intent.getSerializableExtra("user");
         int position = intent.getIntExtra("tab", 0);
+        updateCheckInMap();
 
         StorageReference sr = FirebaseStorage.getInstance().getReference().child("/profilepictures/"+currentUser.getUid()+"/pp.jpg");
 
@@ -122,10 +142,75 @@ public class CreateGroup extends AppCompatActivity implements LocationListener {
     }
 
     public void updateLocationFirebase(Location location){
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference myRef = database.getReference();
-        Log.i("Speed", "Lat : "+location.getLatitude() + " lon : " + location.getLongitude() + " speed : " + location.getSpeed());
         Position pos = new Position(location.getLatitude(), location.getLongitude(), location.getSpeed());
-        myRef.child("locations").child(currentUser.getUid()).setValue(pos);
+        mDatabase.child("locations").child(currentUser.getUid()).setValue(pos);
+        checkLocation(location);
+    }
+
+    private void updateCheckInMap(){
+        for(String uid: currentUser.getCheckInMap().values()){
+            mDatabase.child("checkIn").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    CheckIn checkIn = dataSnapshot.getValue(CheckIn.class);
+                    LatLng latLng = checkIn.getLatLng();
+                    checkInMap.put(latLng, checkIn);
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+
+    }
+
+    private void checkLocation(Location location){
+        for (LatLng lat: checkInMap.keySet()) {
+            float[] results = new float[10];
+            Location.distanceBetween(location.getLatitude(), location.getLongitude(), lat.latitude, lat.longitude, results);
+            if(results[0] < 500){
+                notifyCheckIn(checkInMap.get(lat));
+
+            }
+        }
+    }
+
+    private void notifyCheckIn(CheckIn checkIn){
+        mDatabase.child("groups").child(checkIn.getGroupId()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(dataSnapshot.getValue() != null){
+                    Group group = dataSnapshot.getValue(Group.class);
+                    for (Member member: group.getMembers()) {
+                        if("member".equals(member.getType())){
+                            sendNotification(checkIn, member, group.getName());
+                        }
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void sendNotification(CheckIn checkIn, Member member, String groupName){
+        mDatabase.child("Tokens").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Token token = dataSnapshot.getValue(Token.class);
+                if(token != null){
+                    Data data = new Data("CheckIn", currentUser.getEmail() + " has been Checked In "+checkIn.getName()+"!","CheckIn");
+                    data.getAdditionalFields().put("name",groupName);
+                    pushNotification.sendNotification(token.getToken(),data);
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 }

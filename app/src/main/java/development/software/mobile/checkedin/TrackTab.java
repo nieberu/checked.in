@@ -109,9 +109,10 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
         user = (User) intent.getSerializableExtra("user");
         groups = user.getGroupMap().keySet().toArray(new String[user.getGroupMap().keySet().size()]);
         ArrayAdapter<String> adapter = new ArrayAdapter(getContext(), android.R.layout.simple_spinner_dropdown_item, groups);
+        String groupName = intent.getStringExtra("groupName");
         groupNames.setAdapter(adapter);
         if(groups.length > 0){
-            updateSelection(groups[0]);
+            updateSelection(groupName == null ? groups[0] : groupName);
         }
 
         groupNames.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

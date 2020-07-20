@@ -30,6 +30,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +39,10 @@ import java.util.Map;
 
 import development.software.mobile.checkedin.models.Group;
 import development.software.mobile.checkedin.models.Member;
+import development.software.mobile.checkedin.models.Token;
 import development.software.mobile.checkedin.models.User;
+import development.software.mobile.checkedin.notification.Data;
+import development.software.mobile.checkedin.util.PushNotification;
 
 public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
 
@@ -49,6 +53,8 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
     private Group group;
     private Context context;
     private TabLayout tabHost;
+    private PushNotification pushNotification;
+    private Gson gson;
 
 
 
@@ -61,6 +67,8 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
         this.isOwner = isOwner;
         this.group = group;
         this.tabHost = tabHost;
+        pushNotification = PushNotification.builder();
+        gson = new Gson();
     }
 
     @Override
@@ -138,14 +146,34 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
                 group.getMembers().remove(position);
                 childUpdates.put("/groups/"+group.getUid(),group);
                 myRef.updateChildren(childUpdates);
-                myRef.child("users").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+//                myRef.child("users").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                        User user = dataSnapshot.getValue(User.class);
+//                        user.getGroupMap().remove(group.getName());
+//                        for(Member m: group.getMembers()){
+//                            if("checkIn".equals(m.getType())){
+//                                user.getCheckInMap().remove(m.getEmail().split("\\|\\|")[0]);
+//                            }
+//                        }
+//                        Map<String, Object> childUpdates = new HashMap<>();
+//                        childUpdates.put("/users/"+user.getUid(),user);
+//                        myRef.updateChildren(childUpdates);
+//                    }
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                    }
+//                });
+                myRef.child("Tokens").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
-                        user.getGroupMap().remove(group.getName());
-                        Map<String, Object> childUpdates = new HashMap<>();
-                        childUpdates.put("/users/"+user.getUid(),user);
-                        myRef.updateChildren(childUpdates);
+                        Token token = dataSnapshot.getValue(Token.class);
+                        if(token != null){
+                            Data data = new Data("Remove Group", "You have been Removed from group "+group.getName()+"!","RemoveGroup");
+                            data.getAdditionalFields().put("group",gson.toJson(group));
+                            pushNotification.sendNotification(token.getToken(),data);
+                        }
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {

@@ -181,6 +181,7 @@ public class CreateGroupTab extends Fragment {
     }
 
     private void updateFireBase(final Group group){
+        currentUser.getGroupMap().put(group.getName(), group.getUid());
         myRef.child("groups").child(group.getUid()).setValue(group);
         for(Member member : group.getMembers()){
             myRef.child("users").child(member.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
