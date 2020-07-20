@@ -62,7 +62,7 @@ public class MailSender extends javax.mail.Authenticator {
                 "  </p>\n" +
                 "  <h2 style=\"text-align: center;\">Thank you for using Checked.In!!</h2>";
         MimeMessage message = new MimeMessage(session);
-        DataHandler handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/plain"));
+        DataHandler handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/html"));
         message.setSender(new InternetAddress(sender));
         message.setSubject(subject);
         message.setDataHandler(handler);

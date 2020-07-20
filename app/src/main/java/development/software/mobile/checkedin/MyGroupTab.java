@@ -65,6 +65,7 @@ public class MyGroupTab extends Fragment{
     private Group currentGroup;
     private ListView checkInListView;
     private TextView groupKey;
+    private TextView groupKeyLabel;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -122,6 +123,7 @@ public class MyGroupTab extends Fragment{
         tabhost = (TabLayout) getActivity().findViewById(R.id.tabs);
         Intent intent = getActivity().getIntent();
         groupKey = view.findViewById(R.id.groupKeyTextView);
+        groupKeyLabel = view.findViewById(R.id.groupKeyText);
         groupNames = view.findViewById(R.id.group_name_spinner);
         listView = view.findViewById(R.id.list_item);
         checkInListView = view.findViewById(R.id.checkin_list_item);
@@ -134,6 +136,9 @@ public class MyGroupTab extends Fragment{
         if(groups.length > 0){
             currentGroupName = groupName == null ? groups[0]: groupName;
             updateSelection(currentGroupName);
+        } else {
+            groupKey.setVisibility(View.GONE);
+            groupKeyLabel.setVisibility(View.GONE);
         }
 
         groupNames.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -169,9 +174,15 @@ public class MyGroupTab extends Fragment{
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Group group = dataSnapshot.getValue(Group.class);
                 currentGroup = group;
-                groupKey.setText("Group Key: "+currentGroup.getKey());
-                if(!user.getEmail().equals(group.getOwner()))
+                groupKey.setText(currentGroup.getKey());
+                if(!user.getEmail().equals(group.getOwner())){
                     groupKey.setVisibility(View.GONE);
+                    groupKeyLabel.setVisibility(View.GONE);
+                } else {
+                    groupKey.setVisibility(View.VISIBLE);
+                    groupKeyLabel.setVisibility(View.VISIBLE);
+                }
+
                 group.getMembers().removeAll(Collections.singleton(null));
                 List<Member> memberList = new ArrayList<>();
                 List<Member> checkInList = new ArrayList<>();

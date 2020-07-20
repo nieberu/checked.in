@@ -24,10 +24,13 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import development.software.mobile.checkedin.CreateGroup;
 import development.software.mobile.checkedin.R;
+import development.software.mobile.checkedin.models.Group;
+import development.software.mobile.checkedin.models.Member;
 import development.software.mobile.checkedin.models.Token;
 import development.software.mobile.checkedin.models.User;
 
@@ -89,6 +92,21 @@ public class FirebaseTokenService extends FirebaseMessagingService {
                         } else if("MemberAdded".equals(type)){
                             intent.putExtra("groupName", additionalFields.get("name"));
                             intent.putExtra("tab", 1);
+                        }else if("RemoveGroup".equals(type)){
+                            Group group = gson.fromJson(additionalFields.get("group"), new TypeToken<Group>(){}.getType());
+                            user.getGroupMap().remove(group.getName());
+                            for(Member m: group.getMembers()){
+                                if("checkIn".equals(m.getType())){
+                                    user.getCheckInMap().remove(m.getEmail().split("\\|\\|")[0]);
+                                }
+                            }
+                            Map<String, Object> childUpdates = new HashMap<>();
+                            childUpdates.put("/users/"+user.getUid(),user);
+                            myRef.updateChildren(childUpdates);
+                            intent.putExtra("tab", 1);
+                        } else if("CheckIn".equals(type)){
+                            intent.putExtra("groupName", additionalFields.get("name"));
+                            intent.putExtra("tab", 0);
                         }
                         else if(user.getGroupMap().size() > 0) {
                             intent.putExtra("tab", 0);
