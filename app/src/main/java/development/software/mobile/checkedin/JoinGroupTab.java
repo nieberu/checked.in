@@ -140,6 +140,11 @@ public class JoinGroupTab extends Fragment {
     private void updateFireBase(Group group){
         group.getMembers().add(new Member(currentUser.getUid(), currentUser.getEmail(), "member"));
         currentUser.getGroupMap().put(group.getName(), group.getUid());
+        for (Member member: group.getMembers()) {
+            if("checkIn".equals(member.getType())){
+                currentUser.getCheckInMap().put(member.getEmail().split("\\|\\|")[0], member.getUid());
+            }
+        }
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/groups/"+group.getUid(),group);
         childUpdates.put("/users/"+currentUser.getUid(),currentUser);

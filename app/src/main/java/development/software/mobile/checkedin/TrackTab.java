@@ -189,9 +189,10 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
                         Marker prevMarker = markerMap.get(member.getUid());
                         if(prevMarker != null){
                             prevMarker.setVisible(true);
+                            prevMarker.setTitle("Speed : " + ((int)position.getSpeed()));
                             animateMarker(prevMarker,latlang,false);
                         }else {
-                            Marker marker = googleMap.addMarker(generateMarker(member.getUid(), latlang));
+                            Marker marker = googleMap.addMarker(generateMarker(member.getUid(), latlang, position.getSpeed()));
                             markerMap.put(member.getUid(), marker);
                         }
 
@@ -236,7 +237,7 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    private MarkerOptions generateMarker(String uid, LatLng latlang){
+    private MarkerOptions generateMarker(String uid, LatLng latlang, double speed){
         View marker = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_view, null);
         ImageView imageView = marker.findViewById(R.id.pp_image);
         StorageReference sr = FirebaseStorage.getInstance().getReference().child("/profilepictures/"+uid+"/pp.jpg");
@@ -248,7 +249,8 @@ public class TrackTab extends Fragment implements OnMapReadyCallback,
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(latlang)
                 .icon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(getContext(), marker)))
-                .zIndex(10f);
+                .zIndex(10f)
+                .title("Speed : " +  ((int)speed));
         return markerOptions;
     }
 
